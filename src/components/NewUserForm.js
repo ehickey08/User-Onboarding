@@ -4,26 +4,38 @@ import * as Yup from 'yup'
 import axios from 'axios'
 import './form.css'
 
-function NewUserForm({values, isSubmitting}) {
-    console.log(isSubmitting)
+function NewUserForm({values, errors, touched, isSubmitting}) {
     return (
         <Form className="new_user_form">
-            <label>First Name</label>
-            <Field name="first name" />
-            <ErrorMessage name="first name" />
-            <label>Last Name</label>
-            <Field name="last name" />
-            <ErrorMessage name="last name" />
-            <label>Email</label>
-            <Field type="email" name="email"/>
-            <ErrorMessage name="email" />
-            <label>Password</label>
-            <Field type="password" name="password"/>
-            <ErrorMessage name="password" />
-            Terms of Agreement
-            <Field type="radio" name="tos" value={values.agree} />Yes
-            <Field type="radio" name="tos" value={values.agree} />No
-            <button disabled={isSubmitting}>Submit</button>
+            <div className="field_div">
+                <label>First Name</label>
+                <Field name="firstName" autoComplete="off" className={errors.firstName && touched.firstName ? 'invalid' : ''}/>
+                <p className="error-text"><ErrorMessage name="firstName" /></p>
+            </div>
+            <div className="field_div">
+                <label>Last Name</label>
+                <Field name="lastName" autoComplete="off" className={errors.lastName && touched.lastName? 'invalid' : ''}/>
+                <p className="error-text"><ErrorMessage name="lastName" /></p>
+            </div>
+            <div className="field_div">
+                <label>Email</label>
+                <Field type="email" name="email" autoComplete="off" className={errors.email && touched.email ? 'invalid' : ''}/>
+                <p className="error-text"><ErrorMessage name="email" /></p>
+            </div>
+            <div className="field_div">
+                <label>Password</label>
+                <Field type="password" name="password" className={errors.password && touched.password ? 'invalid' : ''}/>
+                <p className="error-text"><ErrorMessage name="password" /></p>
+            </div>
+            <div className="field_div">
+                <p className="tos">Do you agree with the Terms of Agreement?</p>
+                <div className="tos_div">
+                    <Field type="radio" name="agree" value="Yes" checked={values.agree==='Yes'} />Yes
+                    <Field type="radio" name="agree" value="No" checked={values.agree==='No'} />No
+                </div>
+            </div>
+            <button className="submit-button" disabled={isSubmitting}>Submit</button>
+            {isSubmitting && <h4>Signing up user...</h4>}
         </Form>
     )
 }
@@ -31,35 +43,38 @@ function NewUserForm({values, isSubmitting}) {
 export default withFormik({
     mapPropsToValues: () => {
         return {
-            ['first name']: '',
-            ['last name']: '',
+            firstName: '',
+            lastName: '',
             email: '',
             password: '',
-            agree: ''false''
+            agree: '',
         }
     },
     handleSubmit: (values, {resetForm}) => {
         axios
             .post("https:reqres.in/api/users", values)
             .then(res => {
-                console.log(res)
-                window.alert(`${res.data['first name']} was created at ${res.data.createdAt}`)
+                window.alert(`${res.data.firstName} was signed up at ${res.data.createdAt}`)
+                resetForm()
             })
             .catch(err => console.log(err))
-        resetForm()
     },
     validationSchema: Yup.object().shape({
-        ['first name']: Yup.string()
+        firstName: Yup.string()
             .min(2, 'Too short for a first name')
             .max(20, 'Too long for a first name')
             .required('First name is required!'),
-        ['last name']: Yup.string()
+        lastName: Yup.string()
             .min(2, 'Too short for a last name')
             .max(20, 'Too long for a last name')
             .required('Last name is required!'),
         email: Yup.string()
             .email('Invalid email')
-            .required('Email is required!')
+            .required('Email is required!'),
+        password: Yup.string()
+            .min(8, "Password must be at least 8 characters")
+            .required('Password is required!')
+
         
     })
 })(NewUserForm)
